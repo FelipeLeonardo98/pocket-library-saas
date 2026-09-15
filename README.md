@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EstudoPDF — beta pública
 
-## Getting Started
+Leitor de PDFs focado em estudo. Os arquivos, preferências e anotações ficam no IndexedDB do navegador; somente os trechos enviados ao assistente são processados pelo backend de IA.
 
-First, run the development server:
+Beta: https://beta.dkwxx3mmw59dz.amplifyapp.com
+
+## Executar
 
 ```bash
+npm install
+Copy-Item .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse `http://localhost:3000`, clique em **Adicionar PDF** e escolha um livro.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Entregue no Marco 1
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- biblioteca local de PDFs;
+- importação e remoção de livros;
+- renderização com PDF.js;
+- navegação por botões, número da página ou setas do teclado;
+- zoom e tela cheia;
+- retomada automática da última página.
 
-## Learn More
+## Entregue no Marco 2
 
-To learn more about Next.js, take a look at the following resources:
+- modos **Página original** e **Leitura**;
+- extração local do texto da página, sem enviar o PDF;
+- temas claro, sépia e escuro;
+- ajuste de luminosidade nos dois modos;
+- fonte, tamanho, espaçamento e margens no modo leitura;
+- preferências persistidas no navegador;
+- modo foco com tela cheia e interface reduzida;
+- controles responsivos para telas menores.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+O modo leitura depende do texto incorporado no PDF. Páginas digitalizadas como imagem precisarão de OCR em um marco futuro.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Entregue no Marco 3
 
-## Deploy on Vercel
+- marcadores de página nos dois modos de visualização;
+- seleção e destaque de trechos no modo **Leitura**, com três cores;
+- notas vinculadas a trechos selecionados;
+- caderno lateral reunindo marcadores, destaques e notas;
+- atalhos do caderno para voltar à página original;
+- remoção individual de itens;
+- exportação do material de estudo em Markdown;
+- persistência totalmente local.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Trechos sobrepostos são evitados no modo **Leitura** nesta versão da POC.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Marco 3.1
+
+- camada de texto transparente sobre o PDF original;
+- seleção, destaque e notas diretamente no modo **Página**;
+- destaques posicionados sobre a página e preservados durante o zoom;
+- seleção mais robusta por mouse ou toque no modo **Leitura**.
+
+PDFs digitalizados como imagem continuam dependendo de OCR, planejado para um marco posterior.
+
+## Marco 4 — protótipo local
+
+- assistente de leitura executado localmente pelo Ollama;
+- explicação de trechos selecionados;
+- tradução de trechos para português brasileiro;
+- resumo do conteúdo até a página atual, limitado aos últimos 14 mil caracteres;
+- acesso às ações de IA tanto pela seleção quanto pelo painel lateral;
+- validação inicial do fluxo de IA antes da publicação.
+
+## Beta AWS
+
+- frontend estático no AWS Amplify;
+- API Gateway e Lambda Node.js para tradução, explicação e resumo;
+- Amazon Bedrock como provedor de IA;
+- chave beta compartilhada e cota de 30 interações por dia no DynamoDB;
+- throttling no API Gateway e IAM mínimo na Lambda;
+- alertas de orçamento em US$5 e US$8;
+- infraestrutura reproduzível em Terraform na pasta `infra`.
+
+O backend reserva uma interação antes de chamar o modelo e a devolve automaticamente se o provedor falhar. A chave bruta não fica no Terraform nem no Git.
+
+## Privacidade
+
+O PDF permanece no armazenamento local do navegador. Limpar os dados do site remove a biblioteca e o progresso. Arquivos `.pdf`, segredos `.env*` e a pasta `books/` são ignorados pelo Git.

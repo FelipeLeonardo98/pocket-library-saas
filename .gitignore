@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+**/node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -32,6 +33,19 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+backend/.env.admin
+backend/dist/
+infra/*.tfstate
+infra/*.tfstate.*
+infra/.terraform/
+infra/*.auto.tfvars
+infra/.build/
+deploy/
+
+# local books and user data
+/books/
+*.pdf
 
 # vercel
 .vercel
