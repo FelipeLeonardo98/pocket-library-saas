@@ -7,7 +7,7 @@ Infraestrutura Terraform do beta público do EstudoPDF. Usa por padrão o perfil
 - Amplify Hosting estático, publicado manualmente pelo script de deploy;
 - API Gateway HTTP API com throttling de 2 req/s e burst 4;
 - Lambda Node.js/TypeScript em ARM64;
-- OpenAI `gpt-5.6-luna` como provedor ativo;
+- OpenAI `gpt-5-nano` com raciocínio mínimo como provedor ativo;
 - Amazon Bedrock com Nova Micro preservado como provedor alternativo;
 - AWS Secrets Manager para a chave da OpenAI, sem gravá-la no estado Terraform;
 - DynamoDB on-demand para a quota diária;

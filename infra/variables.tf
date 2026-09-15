@@ -49,7 +49,7 @@ variable "openai_secret_key_field" {
 variable "openai_model_id" {
   type        = string
   description = "OpenAI model used while Bedrock account inference is unavailable."
-  default     = "gpt-5.6-luna"
+  default     = "gpt-5-nano"
 }
 
 variable "budget_alert_topic_name" {

@@ -71,14 +71,14 @@ async function getOpenAIApiKey() {
 
 export async function askOpenAI(input: AssistantInput) {
   const prompts = createPrompts(input);
-  const modelId = process.env.OPENAI_MODEL_ID ?? "gpt-5.6-luna";
+  const modelId = process.env.OPENAI_MODEL_ID ?? "gpt-5-nano";
   const client = new OpenAI({ apiKey: await getOpenAIApiKey() });
   const response = await client.responses.create({
     model: modelId,
     instructions: prompts.system,
     input: prompts.user,
     max_output_tokens: 650,
-    reasoning: { effort: "none" },
+    reasoning: { effort: "minimal" },
     store: false,
   });
   const answer = response.output_text.trim();

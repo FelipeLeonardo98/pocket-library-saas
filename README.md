@@ -71,7 +71,7 @@ PDFs digitalizados como imagem continuam dependendo de OCR, planejado para um ma
 
 - frontend estático no AWS Amplify;
 - API Gateway e Lambda Node.js para tradução, explicação e resumo;
-- OpenAI `gpt-5.6-luna` como provedor ativo de IA, com Bedrock preservado como alternativa;
+- OpenAI `gpt-5-nano` com raciocínio mínimo como provedor ativo de IA, com Bedrock preservado como alternativa;
 - chave da OpenAI protegida no AWS Secrets Manager e lida somente pela Lambda;
 - chave beta compartilhada e cota de 30 interações por dia no DynamoDB;
 - throttling no API Gateway e IAM mínimo na Lambda;
