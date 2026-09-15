@@ -1,6 +1,6 @@
-# Infraestrutura AWS
+# Infraestrutura AWS — Pocket Library
 
-Infraestrutura Terraform do beta público do EstudoPDF. Usa por padrão o perfil `terraform_father_account` e a região `us-east-1`.
+Infraestrutura Terraform do beta público do Pocket Library. Usa por padrão o perfil `terraform_father_account` e a região `us-east-1`.
 
 ## Recursos
 

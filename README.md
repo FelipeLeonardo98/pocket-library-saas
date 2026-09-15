@@ -1,6 +1,6 @@
-# EstudoPDF — beta pública
+# Pocket Library — beta pública
 
-Leitor de PDFs focado em estudo. Os arquivos, preferências e anotações ficam no IndexedDB do navegador; somente os trechos enviados ao assistente são processados pelo backend de IA.
+Sua biblioteca, no seu bolso. Leitor de PDFs focado em estudo: os arquivos, preferências e anotações ficam no IndexedDB do navegador; somente os trechos enviados ao assistente são processados pelo backend de IA.
 
 Beta: https://beta.dkwxx3mmw59dz.amplifyapp.com
 

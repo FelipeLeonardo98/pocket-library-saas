@@ -6,7 +6,7 @@ const geist = Geist({ variable: "--font-ui", subsets: ["latin"] });
 const lora = Lora({ variable: "--font-reading", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "EstudoPDF",
+  title: "Pocket Library",
   description: "Leitor local de PDFs para estudo",
 };
 

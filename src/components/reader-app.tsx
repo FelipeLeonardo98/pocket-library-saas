@@ -71,7 +71,7 @@ export default function ReaderApp() {
   return (
     <main className="library-shell">
       <aside className="sidebar">
-        <div className="brand"><BookOpen size={24} /><span>EstudoPDF</span></div>
+        <div className="brand"><BookOpen size={24} /><span>Pocket Library</span></div>
         <nav><span className="nav-item active"><Library size={18} />Minha biblioteca</span></nav>
         <p className="sidebar-note">Seus PDFs ficam somente neste navegador.</p>
       </aside>
