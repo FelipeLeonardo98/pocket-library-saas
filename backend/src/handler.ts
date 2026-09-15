@@ -1,5 +1,5 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { askBedrock, validateAssistantInput } from "./assistant.js";
+import { askAssistant, validateAssistantInput } from "./assistant.js";
 import { consumeDailyQuota, isValidAccessKey, releaseDailyQuota } from "./quota.js";
 
 const json = (statusCode: number, body: object) => ({
@@ -22,7 +22,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const input = validateAssistantInput(JSON.parse(event.body ?? "{}"));
     const quota = await consumeDailyQuota(accessKey);
     try {
-      const result = await askBedrock(input);
+      const result = await askAssistant(input);
       return json(200, {
         ...result,
         quota: { used: quota.used, remaining: quota.remaining, limit: quota.limit },

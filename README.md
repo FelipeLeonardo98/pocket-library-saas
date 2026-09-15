@@ -71,13 +71,14 @@ PDFs digitalizados como imagem continuam dependendo de OCR, planejado para um ma
 
 - frontend estático no AWS Amplify;
 - API Gateway e Lambda Node.js para tradução, explicação e resumo;
-- Amazon Bedrock como provedor de IA;
+- OpenAI `gpt-5.6-luna` como provedor ativo de IA, com Bedrock preservado como alternativa;
+- chave da OpenAI protegida no AWS Secrets Manager e lida somente pela Lambda;
 - chave beta compartilhada e cota de 30 interações por dia no DynamoDB;
 - throttling no API Gateway e IAM mínimo na Lambda;
 - alertas de orçamento em US$5 e US$8;
 - infraestrutura reproduzível em Terraform na pasta `infra`.
 
-O backend reserva uma interação antes de chamar o modelo e a devolve automaticamente se o provedor falhar. A chave bruta não fica no Terraform nem no Git.
+O backend reserva uma interação antes de chamar o modelo e a devolve automaticamente se o provedor falhar. Nenhuma chave bruta fica no Terraform ou no Git, e as chamadas usam `store: false`.
 
 ## Privacidade
 

@@ -1,3 +1,12 @@
+resource "aws_secretsmanager_secret" "openai" {
+  name = var.openai_secret_name
+  tags = local.required_tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 module "amplify" {
   source      = "./modules/amplify_hosting"
   name_prefix = var.name_prefix
@@ -11,15 +20,19 @@ module "quota" {
 }
 
 module "serverless_api" {
-  source                 = "./modules/serverless_api"
-  name_prefix            = var.name_prefix
-  aws_region             = var.aws_region
-  source_file            = "${path.module}/../backend/dist/index.js"
-  quota_table_name       = module.quota.table_name
-  quota_table_arn        = module.quota.table_arn
-  beta_access_key_sha256 = var.beta_access_key_sha256
-  daily_ai_limit         = var.daily_ai_limit
-  bedrock_model_id       = var.bedrock_model_id
+  source                  = "./modules/serverless_api"
+  name_prefix             = var.name_prefix
+  aws_region              = var.aws_region
+  source_file             = "${path.module}/../backend/dist/index.js"
+  quota_table_name        = module.quota.table_name
+  quota_table_arn         = module.quota.table_arn
+  beta_access_key_sha256  = var.beta_access_key_sha256
+  daily_ai_limit          = var.daily_ai_limit
+  bedrock_model_id        = var.bedrock_model_id
+  ai_provider             = "openai"
+  openai_secret_arn       = aws_secretsmanager_secret.openai.arn
+  openai_secret_key_field = var.openai_secret_key_field
+  openai_model_id         = var.openai_model_id
   cors_origins = [
     "http://localhost:3000",
     "http://localhost:3001",

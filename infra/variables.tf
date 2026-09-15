@@ -34,6 +34,24 @@ variable "bedrock_model_id" {
   default     = "amazon.nova-micro-v1:0"
 }
 
+variable "openai_secret_name" {
+  type        = string
+  description = "Secrets Manager secret containing the OpenAI API key."
+  default     = "estudo-pdf/openai-api-key"
+}
+
+variable "openai_secret_key_field" {
+  type        = string
+  description = "JSON field containing the OpenAI API key inside the secret."
+  default     = "data"
+}
+
+variable "openai_model_id" {
+  type        = string
+  description = "OpenAI model used while Bedrock account inference is unavailable."
+  default     = "gpt-5.6-luna"
+}
+
 variable "budget_alert_topic_name" {
   type        = string
   description = "Existing SNS topic that receives account cost alerts."

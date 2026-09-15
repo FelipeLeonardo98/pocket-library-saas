@@ -45,6 +45,11 @@ resource "aws_iam_role_policy" "lambda" {
         Effect   = "Allow"
         Action   = ["bedrock:InvokeModel"]
         Resource = "arn:aws:bedrock:${var.aws_region}::foundation-model/${var.bedrock_model_id}"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["secretsmanager:GetSecretValue"]
+        Resource = var.openai_secret_arn
       }
     ]
   })
@@ -63,10 +68,14 @@ resource "aws_lambda_function" "assistant" {
 
   environment {
     variables = {
-      QUOTA_TABLE_NAME       = var.quota_table_name
-      DAILY_AI_LIMIT         = tostring(var.daily_ai_limit)
-      BETA_ACCESS_KEY_SHA256 = var.beta_access_key_sha256
-      BEDROCK_MODEL_ID       = var.bedrock_model_id
+      QUOTA_TABLE_NAME        = var.quota_table_name
+      DAILY_AI_LIMIT          = tostring(var.daily_ai_limit)
+      BETA_ACCESS_KEY_SHA256  = var.beta_access_key_sha256
+      BEDROCK_MODEL_ID        = var.bedrock_model_id
+      AI_PROVIDER             = var.ai_provider
+      OPENAI_SECRET_ID        = var.openai_secret_arn
+      OPENAI_SECRET_KEY_FIELD = var.openai_secret_key_field
+      OPENAI_MODEL_ID         = var.openai_model_id
     }
   }
 
