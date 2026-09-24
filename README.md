@@ -4,6 +4,8 @@ Sua biblioteca, no seu bolso. Leitor de PDFs focado em estudo: os arquivos, pref
 
 Beta: https://beta.dkwxx3mmw59dz.amplifyapp.com
 
+As decisões e prioridades de produto ficam em [docs/product-feedback.md](docs/product-feedback.md).
+
 ## Executar
 
 ```bash
