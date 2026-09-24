@@ -103,7 +103,7 @@ button { color:inherit; }
 .reading-page.font-serif { font-family:var(--font-reading),Georgia,serif; }
 .reading-page.font-sans { font-family:var(--font-ui),Arial,sans-serif; }
 .reading-page-number { display:block; margin-bottom:35px; color:#9b7651; text-transform:uppercase; letter-spacing:.12em; font:700 10px/1 var(--font-ui),sans-serif; }
-.reading-page p { margin:0; white-space:pre-line; font-size:var(--reading-size); line-height:var(--reading-leading); }
+.reading-page p { margin:0; color:inherit; font-size:var(--reading-size); line-height:var(--reading-leading); text-align:justify; text-wrap:pretty; white-space:normal; overflow-wrap:break-word; hyphens:auto; }
 .reading-page mark { margin:-1px 0; padding:1px 0; border-radius:2px; color:inherit; box-decoration-break:clone; -webkit-box-decoration-break:clone; }
 .reading-page mark.highlight-yellow { background:#f6dc70a8; }
 .reading-page mark.highlight-green { background:#99d7a7a8; }
