@@ -94,6 +94,10 @@ from_email_address       = "Pocket Library <acesso@seu-dominio.com>"
 
 O próximo incremento conecta esse login à sincronização de biblioteca, progresso, marcadores, destaques e notas entre dispositivos. PDFs continuarão privados e locais por padrão; o envio dos arquivos exigirá uma decisão explícita de privacidade antes de ser ativado.
 
+## Leitura por ritmo real
+
+O leitor mede o tempo apenas enquanto a aba está visível e o livro está aberto. Com pelo menos um minuto e duas páginas de leitura, a biblioteca mostra uma estimativa de tempo restante baseada no ritmo daquele livro. Esse histórico fica somente no IndexedDB do navegador.
+
 ## Privacidade
 
 O PDF permanece no armazenamento local do navegador. Limpar os dados do site remove a biblioteca e o progresso. Arquivos `.pdf`, segredos `.env*` e a pasta `books/` são ignorados pelo Git.

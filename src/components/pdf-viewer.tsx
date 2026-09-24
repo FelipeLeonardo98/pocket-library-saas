@@ -43,6 +43,7 @@ interface PdfViewerProps {
   book: BookRecord;
   onBack: () => void;
   onProgress: (page: number, pageCount: number) => void;
+  onReadingTime: (seconds: number) => void;
 }
 
 interface TextSelection {
@@ -59,7 +60,7 @@ interface SearchResult {
   excerpt: string;
 }
 
-export default function PdfViewer({ book, onBack, onProgress }: PdfViewerProps) {
+export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: PdfViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pageSurfaceRef = useRef<HTMLDivElement>(null);
   const textLayerRef = useRef<HTMLDivElement>(null);
@@ -67,6 +68,7 @@ export default function PdfViewer({ book, onBack, onProgress }: PdfViewerProps) 
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const textCache = useRef(new Map<number, string>());
   const searchCancelled = useRef(false);
+  const readingTickRef = useRef(Date.now());
   const preferences = useLiveQuery(() => db.settings.get("reader"), []) ?? defaultPreferences;
   const highlights = useLiveQuery(() => db.highlights.where("bookId").equals(book.id).sortBy("page"), [book.id]) ?? [];
   const bookmarks = useLiveQuery(() => db.bookmarks.where("bookId").equals(book.id).sortBy("page"), [book.id]) ?? [];
@@ -128,6 +130,28 @@ export default function PdfViewer({ book, onBack, onProgress }: PdfViewerProps) 
   useEffect(() => () => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
   }, []);
+
+  useEffect(() => {
+    const flushReadingTime = () => {
+      if (document.visibilityState !== "visible") {
+        readingTickRef.current = Date.now();
+        return;
+      }
+      const now = Date.now();
+      const elapsedSeconds = Math.floor((now - readingTickRef.current) / 1000);
+      readingTickRef.current = now;
+      if (elapsedSeconds > 0) onReadingTime(elapsedSeconds);
+    };
+    const onVisibilityChange = () => flushReadingTime();
+    readingTickRef.current = Date.now();
+    const timer = window.setInterval(flushReadingTime, 15_000);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      flushReadingTime();
+    };
+  }, [onReadingTime]);
 
   useEffect(() => {
     setAssistantAccessKey(sessionStorage.getItem("estudo-pdf-beta-key") ?? "");

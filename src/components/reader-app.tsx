@@ -11,6 +11,23 @@ function formatBytes(bytes: number) {
   return `${megabytes.toFixed(megabytes >= 10 ? 0 : 1)} MB`;
 }
 
+function formatReadingTime(seconds = 0) {
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 1) return "Comece a ler";
+  if (minutes < 60) return `${minutes} min lidos`;
+  const hours = Math.floor(minutes / 60);
+  return `${hours}h${minutes % 60 ? ` ${minutes % 60}min` : ""} lidas`;
+}
+
+function estimateRemaining(book: BookRecord) {
+  const seconds = book.readingSeconds ?? 0;
+  if (!book.pageCount || book.lastPage < 2 || seconds < 60) return null;
+  const pagesPerSecond = (book.lastPage - 1) / seconds;
+  const remainingSeconds = Math.ceil((book.pageCount - book.lastPage) / pagesPerSecond);
+  const minutes = Math.max(1, Math.ceil(remainingSeconds / 60));
+  return minutes < 60 ? `~${minutes} min restantes` : `~${Math.ceil(minutes / 60)}h restantes`;
+}
+
 export default function ReaderApp() {
   const [selectedBook, setSelectedBook] = useState<BookRecord | null>(null);
   const [importing, setImporting] = useState(false);
@@ -44,6 +61,7 @@ export default function ReaderApp() {
       size: file.size,
       pageCount: null,
       lastPage: 1,
+      readingSeconds: 0,
       addedAt: now,
       updatedAt: now,
     };
@@ -64,8 +82,18 @@ export default function ReaderApp() {
     await db.books.update(selectedBookId, { lastPage: page, pageCount, updatedAt });
   }, [selectedBookId]);
 
+  const saveReadingTime = useCallback(async (seconds: number) => {
+    if (!selectedBookId || seconds < 1) return;
+    const book = await db.books.get(selectedBookId);
+    if (!book) return;
+    await db.books.update(selectedBookId, {
+      readingSeconds: (book.readingSeconds ?? 0) + seconds,
+      updatedAt: Date.now(),
+    });
+  }, [selectedBookId]);
+
   if (selectedBook) {
-    return <PdfViewer book={selectedBook} onBack={() => setSelectedBook(null)} onProgress={saveProgress} />;
+    return <PdfViewer book={selectedBook} onBack={() => setSelectedBook(null)} onProgress={saveProgress} onReadingTime={saveReadingTime} />;
   }
 
   return (
@@ -107,13 +135,14 @@ export default function ReaderApp() {
           <div className="book-grid">
             {books.map((book) => {
               const progress = book.pageCount ? Math.round((book.lastPage / book.pageCount) * 100) : 0;
+              const remaining = estimateRemaining(book);
               return (
                 <article className="book-card" key={book.id}>
                   <button className="book-main" onClick={() => setSelectedBook(book)}>
                     <span className="book-cover"><BookOpen size={42} /><small>PDF</small></span>
-                    <span className="book-info"><strong>{book.title}</strong><small>{book.pageCount ? `${book.pageCount} páginas` : formatBytes(book.size)}</small></span>
+                    <span className="book-info"><strong>{book.title}</strong><small>{book.pageCount ? `${book.pageCount} páginas · ${formatReadingTime(book.readingSeconds)}` : formatBytes(book.size)}</small></span>
                     <span className="book-progress"><i style={{ width: `${progress}%` }} /></span>
-                    <span className="progress-label">{progress ? `${progress}% lido` : "Começar leitura"}</span>
+                    <span className="progress-label">{remaining ?? (progress ? `${progress}% lido` : "Começar leitura")}</span>
                   </button>
                   <button className="book-menu" onClick={() => void removeBook(book)} aria-label={`Remover ${book.title}`} title="Remover da biblioteca"><Trash2 size={17} /></button>
                 </article>

@@ -8,6 +8,7 @@ export interface BookRecord {
   size: number;
   pageCount: number | null;
   lastPage: number;
+  readingSeconds?: number;
   addedAt: number;
   updatedAt: number;
 }
@@ -70,6 +71,13 @@ database.version(2).stores({
 });
 
 database.version(3).stores({
+  books: "id, title, fileName, addedAt, updatedAt",
+  settings: "key",
+  highlights: "id, bookId, page, [bookId+page], createdAt",
+  bookmarks: "id, bookId, page, [bookId+page], createdAt",
+});
+
+database.version(4).stores({
   books: "id, title, fileName, addedAt, updatedAt",
   settings: "key",
   highlights: "id, bookId, page, [bookId+page], createdAt",
