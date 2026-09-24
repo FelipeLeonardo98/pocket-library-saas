@@ -80,6 +80,20 @@ PDFs digitalizados como imagem continuam dependendo de OCR, planejado para um ma
 
 O backend reserva uma interação antes de chamar o modelo e a devolve automaticamente se o provedor falhar. Nenhuma chave bruta fica no Terraform ou no Git, e as chamadas usam `store: false`.
 
+## Próxima etapa: contas e sincronização
+
+A infraestrutura já contém um módulo Terraform de login sem senha por código enviado ao e-mail. Ele está **desativado por padrão**, portanto não cria recursos nem envia mensagens até a ativação deliberada.
+
+Para ativá-lo, será necessário verificar primeiro um e-mail ou domínio no Amazon SES. Depois, informe em um arquivo `infra/admin.auto.tfvars`, que permanece ignorado pelo Git:
+
+```hcl
+enable_passwordless_auth = true
+ses_source_arn           = "arn:aws:ses:us-east-1:123456789012:identity/seu-dominio.com"
+from_email_address       = "Pocket Library <acesso@seu-dominio.com>"
+```
+
+O próximo incremento conecta esse login à sincronização de biblioteca, progresso, marcadores, destaques e notas entre dispositivos. PDFs continuarão privados e locais por padrão; o envio dos arquivos exigirá uma decisão explícita de privacidade antes de ser ativado.
+
 ## Privacidade
 
 O PDF permanece no armazenamento local do navegador. Limpar os dados do site remove a biblioteca e o progresso. Arquivos `.pdf`, segredos `.env*` e a pasta `books/` são ignorados pelo Git.

@@ -22,3 +22,13 @@ output "quota_table_name" {
   value       = module.quota.table_name
   description = "DynamoDB table that stores daily AI usage."
 }
+
+output "cognito_user_pool_id" {
+  value       = module.identity.user_pool_id
+  description = "Cognito user pool ID when passwordless login is enabled."
+}
+
+output "cognito_web_client_id" {
+  value       = module.identity.web_client_id
+  description = "Cognito web client ID when passwordless login is enabled."
+}

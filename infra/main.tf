@@ -19,6 +19,15 @@ module "quota" {
   tags        = local.required_tags
 }
 
+module "identity" {
+  source             = "./modules/identity"
+  enabled            = var.enable_passwordless_auth
+  name_prefix        = var.name_prefix
+  ses_source_arn     = var.ses_source_arn
+  from_email_address = var.from_email_address
+  tags               = local.required_tags
+}
+
 module "serverless_api" {
   source                  = "./modules/serverless_api"
   name_prefix             = var.name_prefix

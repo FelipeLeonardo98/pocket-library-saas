@@ -57,3 +57,22 @@ variable "budget_alert_topic_name" {
   description = "Existing SNS topic that receives account cost alerts."
   default     = "sns-orchestration"
 }
+
+variable "enable_passwordless_auth" {
+  type        = bool
+  description = "Create Cognito resources for passwordless sign-in by email code."
+  default     = false
+}
+
+variable "ses_source_arn" {
+  type        = string
+  sensitive   = true
+  description = "ARN of the verified SES identity used by Cognito for email one-time codes."
+  default     = ""
+}
+
+variable "from_email_address" {
+  type        = string
+  description = "Verified sender address displayed by Cognito."
+  default     = ""
+}
