@@ -17,6 +17,7 @@ import {
   Minus,
   Plus,
   RotateCcw,
+  Search,
   SlidersHorizontal,
   Sparkles,
   StickyNote,
@@ -53,6 +54,11 @@ interface TextSelection {
   rects?: HighlightRect[];
 }
 
+interface SearchResult {
+  page: number;
+  excerpt: string;
+}
+
 export default function PdfViewer({ book, onBack, onProgress }: PdfViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pageSurfaceRef = useRef<HTMLDivElement>(null);
@@ -60,6 +66,7 @@ export default function PdfViewer({ book, onBack, onProgress }: PdfViewerProps) 
   const readingParagraphRef = useRef<HTMLParagraphElement>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const textCache = useRef(new Map<number, string>());
+  const searchCancelled = useRef(false);
   const preferences = useLiveQuery(() => db.settings.get("reader"), []) ?? defaultPreferences;
   const highlights = useLiveQuery(() => db.highlights.where("bookId").equals(book.id).sortBy("page"), [book.id]) ?? [];
   const bookmarks = useLiveQuery(() => db.bookmarks.where("bookId").equals(book.id).sortBy("page"), [book.id]) ?? [];
@@ -70,6 +77,11 @@ export default function PdfViewer({ book, onBack, onProgress }: PdfViewerProps) 
   const [readingText, setReadingText] = useState("");
   const [extractingText, setExtractingText] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const [studyOpen, setStudyOpen] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [assistantAction, setAssistantAction] = useState<AssistantAction | null>(null);
@@ -95,6 +107,23 @@ export default function PdfViewer({ book, onBack, onProgress }: PdfViewerProps) 
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     toastTimerRef.current = setTimeout(() => setToast(null), 2400);
   }, []);
+
+  const getPageText = useCallback(async (pageNumber: number) => {
+    if (!pdfDocument) return "";
+    const cached = textCache.current.get(pageNumber);
+    if (cached !== undefined) return cached;
+    const pdfPage = await pdfDocument.getPage(pageNumber);
+    const content = await pdfPage.getTextContent();
+    const text = content.items
+      .filter((item): item is typeof item & { str: string; hasEOL?: boolean } => "str" in item)
+      .map((item) => `${item.str}${item.hasEOL ? "\n" : " "}`)
+      .join("")
+      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+    textCache.current.set(pageNumber, text);
+    return text;
+  }, [pdfDocument]);
 
   useEffect(() => () => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -183,24 +212,9 @@ export default function PdfViewer({ book, onBack, onProgress }: PdfViewerProps) 
     let cancelled = false;
 
     void (async () => {
-      const cachedText = textCache.current.get(page);
-      if (cachedText !== undefined) {
-        setReadingText(cachedText);
-        return;
-      }
-
       setExtractingText(true);
-      const pdfPage = await pdfDocument.getPage(page);
-      const content = await pdfPage.getTextContent();
+      const text = await getPageText(page);
       if (cancelled) return;
-      const text = content.items
-        .filter((item): item is typeof item & { str: string; hasEOL?: boolean } => "str" in item)
-        .map((item) => `${item.str}${item.hasEOL ? "\n" : " "}`)
-        .join("")
-        .replace(/[ \t]+\n/g, "\n")
-        .replace(/\n{3,}/g, "\n\n")
-        .trim();
-      textCache.current.set(page, text);
       setReadingText(text);
       setExtractingText(false);
     })().catch((error) => {
@@ -211,7 +225,7 @@ export default function PdfViewer({ book, onBack, onProgress }: PdfViewerProps) 
     });
 
     return () => { cancelled = true; };
-  }, [page, pdfDocument, preferences.viewMode]);
+  }, [getPageText, page, pdfDocument, preferences.viewMode]);
 
   useEffect(() => {
     const handleFullscreen = () => {
@@ -368,25 +382,49 @@ export default function PdfViewer({ book, onBack, onProgress }: PdfViewerProps) 
     const chunks: string[] = [];
     let characterCount = 0;
     for (let pageNumber = page; pageNumber >= 1 && characterCount < 14_000; pageNumber -= 1) {
-      let text = textCache.current.get(pageNumber);
-      if (text === undefined) {
-        const pdfPage = await pdfDocument.getPage(pageNumber);
-        const content = await pdfPage.getTextContent();
-        text = content.items
-          .filter((item): item is typeof item & { str: string; hasEOL?: boolean } => "str" in item)
-          .map((item) => `${item.str}${item.hasEOL ? "\n" : " "}`)
-          .join("")
-          .replace(/[ \t]+\n/g, "\n")
-          .replace(/\n{3,}/g, "\n\n")
-          .trim();
-        textCache.current.set(pageNumber, text);
-      }
+      const text = await getPageText(pageNumber);
       if (text) {
         chunks.unshift(`Página ${pageNumber}\n${text}`);
         characterCount += text.length;
       }
     }
     return chunks.join("\n\n").slice(-14_000);
+  };
+
+  const runSearch = async () => {
+    const query = searchQuery.trim().replace(/\s+/g, " ");
+    if (!pdfDocument || query.length < 2) {
+      setSearchResults([]);
+      setHasSearched(false);
+      return;
+    }
+    searchCancelled.current = false;
+    setSearching(true);
+    setHasSearched(true);
+    setSearchResults([]);
+    const normalizedQuery = query.toLocaleLowerCase("pt-BR");
+    const results: SearchResult[] = [];
+
+    try {
+      for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber += 1) {
+        if (searchCancelled.current) return;
+        const text = await getPageText(pageNumber);
+        const normalizedText = text.toLocaleLowerCase("pt-BR");
+        const matchAt = normalizedText.indexOf(normalizedQuery);
+        if (matchAt < 0) continue;
+        const start = Math.max(0, matchAt - 64);
+        const end = Math.min(text.length, matchAt + query.length + 96);
+        results.push({
+          page: pageNumber,
+          excerpt: `${start > 0 ? "…" : ""}${text.slice(start, end).replace(/\s+/g, " ")}${end < text.length ? "…" : ""}`,
+        });
+        setSearchResults([...results]);
+      }
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Não foi possível pesquisar neste PDF.");
+    } finally {
+      if (!searchCancelled.current) setSearching(false);
+    }
   };
 
   const runAssistant = async (action: AssistantAction, sourceOverride?: string) => {
@@ -476,6 +514,7 @@ export default function PdfViewer({ book, onBack, onProgress }: PdfViewerProps) 
           </>}
           <button className={`icon-button ${currentBookmark ? "active-tool" : ""}`} onClick={toggleBookmark} aria-label={currentBookmark ? "Remover marcador" : "Marcar página"}>{currentBookmark ? <BookmarkCheck size={19} /> : <Bookmark size={19} />}</button>
           <button className={`icon-button ${studyOpen ? "active-tool" : ""}`} onClick={() => { setStudyOpen((value) => !value); setSettingsOpen(false); setAssistantOpen(false); }} aria-label="Caderno de estudo"><Highlighter size={19} /><span className="toolbar-badge">{highlights.length + bookmarks.length}</span></button>
+          <button className={`icon-button ${searchOpen ? "active-tool" : ""}`} onClick={() => { setSearchOpen((value) => !value); setSettingsOpen(false); setStudyOpen(false); setAssistantOpen(false); }} aria-label="Pesquisar no PDF"><Search size={19} /></button>
           <button className={`icon-button ${assistantOpen ? "active-tool" : ""}`} onClick={() => { setAssistantOpen((value) => !value); setSettingsOpen(false); setStudyOpen(false); }} aria-label="Assistente de leitura"><Sparkles size={19} /></button>
           <button className="icon-button" onClick={() => { setSettingsOpen((value) => !value); setStudyOpen(false); setAssistantOpen(false); }} aria-label="Aparência"><SlidersHorizontal size={19} /></button>
           <button className="icon-button" onClick={enterFocusMode} aria-label="Modo foco"><Focus size={19} /></button>
@@ -485,6 +524,7 @@ export default function PdfViewer({ book, onBack, onProgress }: PdfViewerProps) 
 
       {settingsOpen && <AppearancePanel preferences={preferences} onChange={updatePreferences} onClose={() => setSettingsOpen(false)} />}
       {studyOpen && <StudyPanel highlights={highlights} bookmarks={bookmarks} onClose={() => setStudyOpen(false)} onGoToPage={goToPage} onDeleteHighlight={(id) => void db.highlights.delete(id)} onDeleteBookmark={(id) => void db.bookmarks.delete(id)} onExport={exportStudyNotes} />}
+      {searchOpen && <SearchPanel query={searchQuery} results={searchResults} searching={searching} hasSearched={hasSearched} onQueryChange={setSearchQuery} onSearch={() => void runSearch()} onClose={() => { searchCancelled.current = true; setSearching(false); setSearchOpen(false); }} onGoToPage={(resultPage) => { goToPage(resultPage); setSearchOpen(false); }} />}
       {assistantOpen && <AssistantPanel action={assistantAction} answer={assistantAnswer} error={assistantError} loading={assistantLoading} model={assistantModel} source={assistantSource} accessKey={assistantAccessKey} remaining={assistantRemaining} onAccessKeyChange={updateAssistantAccessKey} onClose={() => setAssistantOpen(false)} onRun={(action) => void runAssistant(action)} />}
       {focusMode && <button className="exit-focus" onClick={exitFocusMode}><X size={17} />Sair do foco</button>}
 
@@ -552,6 +592,31 @@ function renderHighlightedText(text: string, highlights: HighlightRecord[]): Rea
   }
   nodes.push(text.slice(cursor));
   return nodes;
+}
+
+function SearchPanel({ query, results, searching, hasSearched, onQueryChange, onSearch, onClose, onGoToPage }: {
+  query: string;
+  results: SearchResult[];
+  searching: boolean;
+  hasSearched: boolean;
+  onQueryChange: (value: string) => void;
+  onSearch: () => void;
+  onClose: () => void;
+  onGoToPage: (page: number) => void;
+}) {
+  return (
+    <aside className="search-panel" aria-label="Pesquisar no PDF">
+      <div className="panel-heading"><div><span className="eyebrow">No seu dispositivo</span><h2>Pesquisar no PDF</h2></div><button className="icon-button" onClick={onClose} aria-label="Fechar pesquisa"><X size={19} /></button></div>
+      <form className="search-form" onSubmit={(event) => { event.preventDefault(); onSearch(); }}>
+        <input autoFocus value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="Termo, conceito ou tecnologia" aria-label="Termo de pesquisa" minLength={2} />
+        <button type="submit" disabled={searching || query.trim().length < 2}>{searching ? "Pesquisando…" : "Pesquisar"}</button>
+      </form>
+      <p className="search-hint">O conteúdo não sai do seu navegador. PDFs digitalizados como imagem podem não retornar resultados.</p>
+      {searching && <div className="search-status"><span className="spinner" />Lendo as páginas do PDF…</div>}
+      {!searching && results.length > 0 && <div className="search-results">{results.map((result) => <button key={result.page} className="search-result" onClick={() => onGoToPage(result.page)}><strong>Página {result.page}</strong><span>{result.excerpt}</span></button>)}</div>}
+      {!searching && hasSearched && results.length === 0 && <p className="search-empty">Nenhuma ocorrência encontrada neste PDF.</p>}
+    </aside>
+  );
 }
 
 function AppearancePanel({ preferences, onChange, onClose }: {
