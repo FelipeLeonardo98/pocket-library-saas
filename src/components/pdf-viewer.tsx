@@ -74,6 +74,7 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
   const bookmarks = useLiveQuery(() => db.bookmarks.where("bookId").equals(book.id).sortBy("page"), [book.id]) ?? [];
   const [pdfDocument, setPdfDocument] = useState<PDFDocumentProxy | null>(null);
   const [page, setPage] = useState(Math.max(1, book.lastPage));
+  const [pageInput, setPageInput] = useState(String(Math.max(1, book.lastPage)));
   const [pageCount, setPageCount] = useState(book.pageCount ?? 0);
   const [scale, setScale] = useState(1.1);
   const [readingText, setReadingText] = useState("");
@@ -186,6 +187,7 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
         setPdfDocument(loadedDocument);
         setPageCount(count);
         setPage(initialPage);
+        setPageInput(String(initialPage));
         onProgress(initialPage, count);
       } catch (error) {
         if (!disposed) setLoadingError(error instanceof Error ? error.message : "Não foi possível abrir este PDF.");
@@ -265,10 +267,20 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
   const goToPage = useCallback((nextPage: number) => {
     const bounded = Math.min(Math.max(nextPage, 1), pageCount || 1);
     setPage(bounded);
+    setPageInput(String(bounded));
     setReadingText("");
     setTextSelection(null);
     if (pageCount) onProgress(bounded, pageCount);
   }, [onProgress, pageCount]);
+
+  const submitPageInput = () => {
+    const requestedPage = Number.parseInt(pageInput, 10);
+    if (Number.isFinite(requestedPage) && requestedPage >= 1) {
+      goToPage(requestedPage);
+      return;
+    }
+    setPageInput(String(page));
+  };
 
   const handleTextSelection = useCallback(() => {
     const paragraph = readingParagraphRef.current;
@@ -648,7 +660,7 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
       <footer className="reader-footer">
         <button className="page-button" onClick={() => goToPage(page - 1)} disabled={page <= 1}><ChevronLeft size={18} /> Anterior</button>
         <div className="progress-area">
-          <div className="page-input-row"><label htmlFor="page-number">Página</label><input id="page-number" type="number" min={1} max={pageCount || 1} value={page} onChange={(event) => goToPage(Number(event.target.value))} /><span>de {pageCount || "—"}</span></div>
+          <div className="page-input-row"><label htmlFor="page-number">Página</label><input id="page-number" type="text" inputMode="numeric" pattern="[0-9]*" value={pageInput} onChange={(event) => setPageInput(event.target.value.replace(/\D/g, ""))} onBlur={submitPageInput} onKeyDown={(event) => { if (event.key === "Enter") { event.currentTarget.blur(); } if (event.key === "Escape") { setPageInput(String(page)); event.currentTarget.blur(); } }} aria-label="Ir para a página" /><span>de {pageCount || "—"}</span></div>
           <div className="progress-track" aria-label={`${progress}% concluído`}><span style={{ width: `${progress}%` }} /></div>
         </div>
         <button className="page-button" onClick={() => goToPage(page + 1)} disabled={!pageCount || page >= pageCount}>Próxima <ChevronRight size={18} /></button>
