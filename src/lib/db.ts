@@ -9,8 +9,20 @@ export interface BookRecord {
   pageCount: number | null;
   lastPage: number;
   readingSeconds?: number;
+  readingProfile?: ReadingProfile;
+  collectionId?: string;
+  coverTone?: CoverTone;
   addedAt: number;
   updatedAt: number;
+}
+
+export type ReadingProfile = "literary" | "technical" | "manual";
+export type CoverTone = "charcoal" | "ocean" | "forest" | "plum" | "sunset";
+
+export interface CollectionRecord {
+  id: string;
+  name: string;
+  createdAt: number;
 }
 
 export interface ReaderPreferences {
@@ -59,6 +71,7 @@ const database = new Dexie("estudo-pdf") as Dexie & {
   settings: EntityTable<ReaderPreferences, "key">;
   highlights: EntityTable<HighlightRecord, "id">;
   bookmarks: EntityTable<BookmarkRecord, "id">;
+  collections: EntityTable<CollectionRecord, "id">;
 };
 
 database.version(1).stores({
@@ -82,6 +95,14 @@ database.version(4).stores({
   settings: "key",
   highlights: "id, bookId, page, [bookId+page], createdAt",
   bookmarks: "id, bookId, page, [bookId+page], createdAt",
+});
+
+database.version(5).stores({
+  books: "id, title, fileName, collectionId, addedAt, updatedAt",
+  settings: "key",
+  highlights: "id, bookId, page, [bookId+page], createdAt",
+  bookmarks: "id, bookId, page, [bookId+page], createdAt",
+  collections: "id, name, createdAt",
 });
 
 export const db = database;

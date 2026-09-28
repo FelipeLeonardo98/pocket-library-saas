@@ -18,11 +18,6 @@ resource "aws_cognito_user_pool" "this" {
     from_email_address    = var.from_email_address
   }
 
-  email_mfa_configuration {
-    subject = "Seu código de acesso — Pocket Library"
-    message = "Seu código de acesso ao Pocket Library é {####}. Ele expira em alguns minutos."
-  }
-
   tags = var.tags
 
   lifecycle {

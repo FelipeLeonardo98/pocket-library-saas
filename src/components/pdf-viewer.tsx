@@ -498,7 +498,7 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(assistantAccessKey.trim() ? { "X-Beta-Key": assistantAccessKey.trim() } : {}) },
-        body: JSON.stringify({ action, text: source, context, bookTitle: book.title, page }),
+        body: JSON.stringify({ action, text: source, context, bookTitle: book.title, page, readingProfile: book.readingProfile ?? "technical" }),
       });
       const data = await response.json() as { answer?: string; error?: string; model?: string; quota?: { remaining?: number } };
       if (!response.ok || !data.answer) throw new Error(data.error || "O assistente não retornou uma resposta.");
