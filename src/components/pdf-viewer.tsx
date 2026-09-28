@@ -94,6 +94,7 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
   const [assistantModel, setAssistantModel] = useState("Llama 3.2");
   const [assistantAccessKey, setAssistantAccessKey] = useState("");
   const [assistantRemaining, setAssistantRemaining] = useState<number | null>(null);
+  const [assistantQuestion, setAssistantQuestion] = useState("");
   const [textSelection, setTextSelection] = useState<TextSelection | null>(null);
   const [noteOpen, setNoteOpen] = useState(false);
   const [noteDraft, setNoteDraft] = useState("");
@@ -415,6 +416,27 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
     return chunks.join("\n\n").slice(-14_000);
   };
 
+  const collectQuestionContext = async (question: string) => {
+    if (!pdfDocument) return "";
+    const terms = question.toLocaleLowerCase("pt-BR").match(/[\p{L}\p{N}_-]{3,}/gu) ?? [];
+    const scored: Array<{ page: number; score: number; text: string }> = [];
+    for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber += 1) {
+      const text = await getPageText(pageNumber);
+      const normalized = text.toLocaleLowerCase("pt-BR");
+      const score = terms.reduce((total, term) => total + normalized.split(term).length - 1, 0);
+      if (score) scored.push({ page: pageNumber, score, text });
+    }
+    const selected = (scored.length ? scored.sort((a, b) => b.score - a.score) : [{ page, score: 0, text: await getPageText(page) }]).slice(0, 4);
+    let used = 0;
+    return selected.reduce<string[]>((chunks, item) => {
+      if (!item.text || used >= 14_000) return chunks;
+      const excerpt = item.text.slice(0, 14_000 - used);
+      used += excerpt.length;
+      chunks.push(`Página ${item.page}\n${excerpt}`);
+      return chunks;
+    }, []).join("\n\n");
+  };
+
   const runSearch = async () => {
     const query = searchQuery.trim().replace(/\s+/g, " ");
     if (!pdfDocument || query.length < 2) {
@@ -453,7 +475,7 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
 
   const runAssistant = async (action: AssistantAction, sourceOverride?: string) => {
     if (assistantLoading) return;
-    const source = sourceOverride ?? assistantSource;
+    const source = sourceOverride ?? (action === "ask" ? assistantQuestion : assistantSource);
     setAssistantOpen(true);
     setAssistantAction(action);
     setAssistantAnswer("");
@@ -472,7 +494,7 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
       if (!configuredUrl) throw new Error("Configure NEXT_PUBLIC_ASSISTANT_API_URL para usar a inteligência artificial.");
       const endpoint = `${configuredUrl}/assistant`;
       if (!assistantAccessKey.trim()) throw new Error("Informe a chave da beta para usar a inteligência artificial.");
-      const context = action === "summarize" ? await collectReadingContext() : "";
+      const context = action === "summarize" ? await collectReadingContext() : action === "ask" ? await collectQuestionContext(source) : "";
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(assistantAccessKey.trim() ? { "X-Beta-Key": assistantAccessKey.trim() } : {}) },
@@ -549,7 +571,7 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
       {settingsOpen && <AppearancePanel preferences={preferences} onChange={updatePreferences} onClose={() => setSettingsOpen(false)} />}
       {studyOpen && <StudyPanel highlights={highlights} bookmarks={bookmarks} onClose={() => setStudyOpen(false)} onGoToPage={goToPage} onDeleteHighlight={(id) => void db.highlights.delete(id)} onDeleteBookmark={(id) => void db.bookmarks.delete(id)} onExport={exportStudyNotes} />}
       {searchOpen && <SearchPanel query={searchQuery} results={searchResults} searching={searching} hasSearched={hasSearched} onQueryChange={setSearchQuery} onSearch={() => void runSearch()} onClose={() => { searchCancelled.current = true; setSearching(false); setSearchOpen(false); }} onGoToPage={(resultPage) => { goToPage(resultPage); setSearchOpen(false); }} />}
-      {assistantOpen && <AssistantPanel action={assistantAction} answer={assistantAnswer} error={assistantError} loading={assistantLoading} model={assistantModel} source={assistantSource} accessKey={assistantAccessKey} remaining={assistantRemaining} onAccessKeyChange={updateAssistantAccessKey} onClose={() => setAssistantOpen(false)} onRun={(action) => void runAssistant(action)} />}
+      {assistantOpen && <AssistantPanel action={assistantAction} answer={assistantAnswer} error={assistantError} loading={assistantLoading} model={assistantModel} source={assistantSource} accessKey={assistantAccessKey} remaining={assistantRemaining} onAccessKeyChange={updateAssistantAccessKey} onClose={() => setAssistantOpen(false)} onRun={(action) => void runAssistant(action)} question={assistantQuestion} onQuestionChange={setAssistantQuestion} />}
       {focusMode && <button className="exit-focus" onClick={exitFocusMode}><X size={17} />Sair do foco</button>}
 
       <section className="document-stage">
