@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { BookOpen, FilePlus2, Library, Trash2 } from "lucide-react";
 import { db, type BookRecord } from "@/lib/db";
+import AccountButton from "./account-button";
 import PdfViewer from "./pdf-viewer";
 
 function formatBytes(bytes: number) {
@@ -114,6 +115,7 @@ export default function ReaderApp() {
           <button className="primary-button" onClick={() => fileInput.current?.click()} disabled={importing}>
             <FilePlus2 size={19} />{importing ? "Importando…" : "Adicionar PDF"}
           </button>
+          <AccountButton />
           <input ref={fileInput} type="file" accept="application/pdf,.pdf" hidden onChange={(event) => {
             const file = event.target.files?.[0];
             if (file) void importPdf(file);

@@ -9,7 +9,7 @@ resource "aws_cognito_user_pool" "this" {
   user_pool_tier           = "ESSENTIALS"
 
   sign_in_policy {
-    allowed_first_auth_factors = ["EMAIL_OTP"]
+    allowed_first_auth_factors = ["EMAIL_OTP", "PASSWORD"]
   }
 
   email_configuration {
@@ -53,3 +53,34 @@ resource "aws_cognito_user_pool_client" "web" {
     refresh_token = "days"
   }
 }
+
+resource "aws_sesv2_email_identity_policy" "allow_cognito" {
+  count = var.enabled ? 1 : 0
+
+  email_identity = replace(var.ses_source_arn, "/^.*:identity\\//", "")
+  policy_name    = "AllowPocketLibraryCognito"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "email.cognito-idp.amazonaws.com"
+      }
+      Action = [
+        "SES:SendEmail",
+        "SES:SendRawEmail",
+      ]
+      Resource = var.ses_source_arn
+      Condition = {
+        StringEquals = {
+          "aws:SourceAccount" = data.aws_caller_identity.current.account_id
+        }
+        ArnLike = {
+          "aws:SourceArn" = aws_cognito_user_pool.this[0].arn
+        }
+      }
+    }]
+  })
+}
+
+data "aws_caller_identity" "current" {}

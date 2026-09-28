@@ -8,6 +8,8 @@ $infraPath = Split-Path -Parent $PSScriptRoot
 $projectPath = Split-Path -Parent $infraPath
 $terraformDirectoryArgument = "-chdir=$infraPath"
 $apiUrl = terraform $terraformDirectoryArgument output -raw api_url
+$cognitoUserPoolId = terraform $terraformDirectoryArgument output -raw cognito_user_pool_id
+$cognitoClientId = terraform $terraformDirectoryArgument output -raw cognito_web_client_id
 $appId = terraform $terraformDirectoryArgument output -raw amplify_app_id
 $branch = terraform $terraformDirectoryArgument output -raw amplify_branch_name
 
@@ -18,6 +20,8 @@ if (-not $apiUrl -or -not $appId -or -not $branch) {
 Push-Location $projectPath
 try {
   $env:NEXT_PUBLIC_ASSISTANT_API_URL = $apiUrl
+  $env:NEXT_PUBLIC_COGNITO_USER_POOL_ID = $cognitoUserPoolId
+  $env:NEXT_PUBLIC_COGNITO_CLIENT_ID = $cognitoClientId
   npm run build
   $deployPath = Join-Path $projectPath "deploy"
   if (Test-Path $deployPath) { Remove-Item -LiteralPath $deployPath -Recurse -Force }

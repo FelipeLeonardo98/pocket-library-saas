@@ -23,6 +23,20 @@ button { color:inherit; }
 .primary-button { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:45px; padding:0 18px; border:0; border-radius:10px; background:var(--accent); color:white; font-weight:700; cursor:pointer; box-shadow:0 8px 22px #7b481f25; }
 .primary-button:hover { background:var(--accent-dark); }
 .primary-button:disabled { opacity:.6; cursor:wait; }
+.account-button { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:45px; padding:0 14px; border:1px solid var(--line); border-radius:10px; background:transparent; color:var(--ink); font-weight:700; cursor:pointer; }
+.account-button:hover { border-color:#b48659; background:#fffaf3; }
+.account-backdrop { position:fixed; z-index:50; inset:0; display:grid; place-items:center; padding:20px; background:#17120b99; }
+.account-dialog { position:relative; width:min(390px,100%); padding:28px; border:1px solid #ddcdb9; border-radius:18px; background:#fffdf9; color:#29241e; box-shadow:0 28px 90px #0008; }
+.account-close { position:absolute; top:12px; right:12px; }
+.account-dialog > svg { color:var(--accent); }
+.account-dialog h2 { margin:12px 0 7px; font:700 27px/1.1 var(--font-reading),serif; }
+.account-dialog > p { margin:0 0 19px; color:var(--muted); font-size:13px; line-height:1.5; }
+.account-dialog form { display:grid; gap:9px; }
+.account-dialog input { width:100%; padding:11px 12px; border:1px solid #d8c8b5; border-radius:9px; background:#fff; color:#29241e; font-size:14px; }
+.account-dialog form button:not(.account-link) { padding:11px; border:1px solid var(--accent); border-radius:9px; background:var(--accent); color:#fff; font-weight:750; cursor:pointer; }
+.account-dialog form button:disabled { opacity:.55; cursor:wait; }
+.account-link { border:0; background:transparent; color:#79522e; cursor:pointer; font-size:12px; }
+.account-message { margin:15px 0 0!important; padding:10px; border-radius:8px; background:#f3eee5; color:#5f5040!important; }
 .notice { max-width:1180px; margin-top:24px; padding:12px 14px; border:1px solid #e7c89f; border-radius:9px; background:#fff8e9; color:#784614; font-size:14px; }
 .empty-state { max-width:1180px; min-height:350px; margin-top:42px; border:1px dashed #cfc7ba; border-radius:18px; display:flex; align-items:center; justify-content:center; gap:10px; color:var(--muted); background:#ffffff80; }
 .empty-action { width:100%; flex-direction:column; cursor:pointer; }
@@ -228,6 +242,7 @@ button { color:inherit; }
   .library-content { padding:32px 20px; }
   .library-header { align-items:stretch; flex-direction:column; }
   .primary-button { align-self:flex-start; }
+  .account-button { align-self:flex-start; }
   .book-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
   .book-main { padding:12px; }
   .reader-shell { min-width:0; grid-template-rows:58px 1fr 78px; }
