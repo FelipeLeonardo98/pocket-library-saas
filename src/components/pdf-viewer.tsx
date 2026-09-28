@@ -98,6 +98,8 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
   const [textSelection, setTextSelection] = useState<TextSelection | null>(null);
   const [noteOpen, setNoteOpen] = useState(false);
   const [noteDraft, setNoteDraft] = useState("");
+  const [bookmarkNoteOpen, setBookmarkNoteOpen] = useState(false);
+  const [bookmarkNoteDraft, setBookmarkNoteDraft] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [focusMode, setFocusMode] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
@@ -374,19 +376,36 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
     showToast(note.trim() ? "Destaque e nota salvos." : "Destaque salvo.");
   };
 
-  const toggleBookmark = async () => {
+  const openBookmarkNote = () => {
+    setBookmarkNoteDraft(currentBookmark?.note ?? "");
+    setBookmarkNoteOpen(true);
+  };
+
+  const saveBookmark = async () => {
+    const now = new Date().getTime();
+    const note = bookmarkNoteDraft.trim();
     if (currentBookmark) {
-      await db.bookmarks.delete(currentBookmark.id);
-      showToast("Marcador removido.");
-      return;
+      await db.bookmarks.update(currentBookmark.id, { note, updatedAt: now });
+      showToast(note ? "Anotação do marcador atualizada." : "Marcador atualizado.");
+    } else {
+      await db.bookmarks.add({ id: `${book.id}:${page}`, bookId: book.id, page, note, createdAt: now, updatedAt: now });
+      showToast(note ? "Página marcada com anotação." : "Página marcada.");
     }
-    await db.bookmarks.add({ id: `${book.id}:${page}`, bookId: book.id, page, createdAt: new Date().getTime() });
-    showToast("Página marcada.");
+    setBookmarkNoteOpen(false);
+    setBookmarkNoteDraft("");
+  };
+
+  const removeCurrentBookmark = async () => {
+    if (!currentBookmark) return;
+    await db.bookmarks.delete(currentBookmark.id);
+    setBookmarkNoteOpen(false);
+    setBookmarkNoteDraft("");
+    showToast("Marcador removido.");
   };
 
   const exportStudyNotes = () => {
     const lines = [`# ${book.title}`, "", "## Marcadores", ""];
-    lines.push(...(bookmarks.length ? bookmarks.map((item) => `- Página ${item.page}`) : ["Nenhum marcador."]));
+    lines.push(...(bookmarks.length ? bookmarks.flatMap((item) => item.note ? [`- Página ${item.page}`, `  - Nota: ${item.note}`] : [`- Página ${item.page}`]) : ["Nenhum marcador."]));
     lines.push("", "## Destaques", "");
     if (!highlights.length) lines.push("Nenhum destaque.");
     for (const item of highlights) {
@@ -558,7 +577,7 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
             <button className="icon-button" onClick={() => setScale((value) => Math.min(2.4, value + 0.15))} aria-label="Aumentar zoom"><Plus size={19} /></button>
             <button className="icon-button" onClick={() => setScale(1.1)} aria-label="Restaurar zoom"><RotateCcw size={18} /></button>
           </>}
-          <button className={`icon-button ${currentBookmark ? "active-tool" : ""}`} onClick={toggleBookmark} aria-label={currentBookmark ? "Remover marcador" : "Marcar página"}>{currentBookmark ? <BookmarkCheck size={19} /> : <Bookmark size={19} />}</button>
+          <button className={`icon-button ${currentBookmark ? "active-tool" : ""}`} onClick={openBookmarkNote} aria-label={currentBookmark ? "Editar marcador e anotação da página" : "Salvar página com anotação"}>{currentBookmark ? <BookmarkCheck size={19} /> : <Bookmark size={19} />}</button>
           <button className={`icon-button ${studyOpen ? "active-tool" : ""}`} onClick={() => { setStudyOpen((value) => !value); setSettingsOpen(false); setAssistantOpen(false); }} aria-label="Caderno de estudo"><Highlighter size={19} /><span className="toolbar-badge">{highlights.length + bookmarks.length}</span></button>
           <button className={`icon-button ${searchOpen ? "active-tool" : ""}`} onClick={() => { setSearchOpen((value) => !value); setSettingsOpen(false); setStudyOpen(false); setAssistantOpen(false); }} aria-label="Pesquisar no PDF"><Search size={19} /></button>
           <button className={`icon-button ${assistantOpen ? "active-tool" : ""}`} onClick={() => { setAssistantOpen((value) => !value); setSettingsOpen(false); setStudyOpen(false); }} aria-label="Assistente de leitura"><Sparkles size={19} /></button>
@@ -609,6 +628,17 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
             <blockquote>{textSelection.text}</blockquote>
             <textarea autoFocus value={noteDraft} onChange={(event) => setNoteDraft(event.target.value)} placeholder="Escreva sua observação…" rows={5} />
             <div className="dialog-actions"><button onClick={() => setNoteOpen(false)}>Cancelar</button><button className="save-note" onClick={() => void saveHighlight("yellow", noteDraft)}>Salvar nota</button></div>
+          </div>
+        </div>
+      )}
+
+      {bookmarkNoteOpen && (
+        <div className="note-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setBookmarkNoteOpen(false); }}>
+          <div className="note-dialog" role="dialog" aria-modal="true" aria-labelledby="bookmark-note-title">
+            <div className="panel-heading"><div><span className="eyebrow">Página {page}</span><h2 id="bookmark-note-title">Salvar página</h2></div><button className="icon-button" onClick={() => setBookmarkNoteOpen(false)} aria-label="Fechar marcador"><X size={19} /></button></div>
+            <p className="search-hint">Adicione um lembrete opcional para explicar por que esta página é importante.</p>
+            <textarea autoFocus value={bookmarkNoteDraft} onChange={(event) => setBookmarkNoteDraft(event.target.value)} placeholder="Ex.: Rever este algoritmo antes da prova." rows={5} />
+            <div className="dialog-actions">{currentBookmark && <button onClick={() => void removeCurrentBookmark()}>Remover marcador</button>}<button onClick={() => setBookmarkNoteOpen(false)}>Cancelar</button><button className="save-note" onClick={() => void saveBookmark()}>{currentBookmark ? "Salvar alterações" : "Salvar página"}</button></div>
           </div>
         </div>
       )}

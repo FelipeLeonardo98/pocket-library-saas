@@ -63,7 +63,9 @@ export interface BookmarkRecord {
   id: string;
   bookId: string;
   page: number;
+  note?: string;
   createdAt: number;
+  updatedAt?: number;
 }
 
 const database = new Dexie("estudo-pdf") as Dexie & {
@@ -98,6 +100,14 @@ database.version(4).stores({
 });
 
 database.version(5).stores({
+  books: "id, title, fileName, collectionId, addedAt, updatedAt",
+  settings: "key",
+  highlights: "id, bookId, page, [bookId+page], createdAt",
+  bookmarks: "id, bookId, page, [bookId+page], createdAt",
+  collections: "id, name, createdAt",
+});
+
+database.version(6).stores({
   books: "id, title, fileName, collectionId, addedAt, updatedAt",
   settings: "key",
   highlights: "id, bookId, page, [bookId+page], createdAt",

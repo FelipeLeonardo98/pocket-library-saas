@@ -37,8 +37,11 @@ export default function StudyPanel({
         <div className="study-list">
           {bookmarks.map((bookmark) => (
             <article className="study-item bookmark-item" key={bookmark.id}>
-              <button className="study-link" onClick={() => onGoToPage(bookmark.page)}>Página {bookmark.page}</button>
-              <button className="mini-delete" onClick={() => onDeleteBookmark(bookmark.id)} aria-label={`Excluir marcador da página ${bookmark.page}`}><Trash2 size={15} /></button>
+              <div className="study-item-top">
+                <button className="study-link" onClick={() => onGoToPage(bookmark.page)}>Página {bookmark.page}</button>
+                <button className="mini-delete" onClick={() => onDeleteBookmark(bookmark.id)} aria-label={`Excluir marcador da página ${bookmark.page}`}><Trash2 size={15} /></button>
+              </div>
+              {bookmark.note && <p className="highlight-note"><StickyNote size={14} /> {bookmark.note}</p>}
             </article>
           ))}
         </div>
