@@ -6,12 +6,22 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding
-Style: Pocket,Georgia,64,&H00F7F3EC,&H000000FF,&H003B2D20,&H00000000,-1,0,0,0,100,100,0,0,1,4,0,8,72,72,160,1
+Style: Headline,Georgia,68,&H00F7F3EC,&H000000FF,&H003B2D20,&H00000000,-1,0,0,0,100,100,0,0,1,4,0,8,72,72,160,1
+Style: Kicker,Arial,25,&H005A9BCF,&H000000FF,&H003B2D20,&H00000000,-1,0,0,0,100,100,4,0,1,2,0,8,72,72,92,1
+Style: Detail,Arial,31,&H00F7F3EC,&H000000FF,&H003B2D20,&H00000000,0,0,0,0,100,100,1,0,1,3,0,8,72,72,480,1
+Style: Final,Georgia,66,&H00F7F3EC,&H000000FF,&H003B2D20,&H00000000,-1,0,0,0,100,100,0,0,1,3,0,5,72,72,0,1
 
 [Events]
 Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
-Dialogue: 0,0:00:00.50,0:00:05.00,Pocket,,0,0,0,,SEU CONHECIMENTO\NNÃO PRECISA PESAR.
-Dialogue: 0,0:00:05.20,0:00:10.80,Pocket,,0,0,0,,LEVE O CONHECIMENTO.\NNÃO O PESO.
-Dialogue: 0,0:00:11.00,0:00:16.70,Pocket,,0,0,0,,LIVROS TÉCNICOS.\NMANUAIS. IDEIAS GRANDES.
-Dialogue: 0,0:00:17.00,0:00:22.60,Pocket,,0,0,0,,ENCONTRE. MARQUE.\NENTENDA.
-Dialogue: 0,0:00:23.00,0:00:29.60,Pocket,,0,0,0,,POCKET LIBRARY\NSUA BIBLIOTECA, NO SEU BOLSO.\NENTRE NA BETA.
+Dialogue: 0,0:00:00.40,0:00:04.90,Kicker,,0,0,0,,{\move(540,-80,540,105,0,650)\fad(120,450)}POCKET LIBRARY
+Dialogue: 1,0:00:00.55,0:00:04.90,Headline,,0,0,0,,{\move(540,-180,540,220,0,850)\fad(100,450)}SEU CONHECIMENTO\NNÃO PRECISA PESAR.
+Dialogue: 0,0:00:05.15,0:00:10.70,Kicker,,0,0,0,,{\move(-300,120,125,120,0,600)\fad(100,450)}PARA QUEM VIVE EM MOVIMENTO
+Dialogue: 1,0:00:05.35,0:00:10.70,Headline,,0,0,0,,{\an7\move(-600,250,125,250,0,800)\fad(100,450)}LEVE O CONHECIMENTO.\NNÃO O PESO.
+Dialogue: 2,0:00:07.00,0:00:10.70,Detail,,0,0,0,,{\an7\move(-400,485,125,485,0,650)\fad(100,450)}Seu PDF, onde você estiver.
+Dialogue: 0,0:00:11.00,0:00:16.60,Kicker,,0,0,0,,{\move(1380,110,700,110,0,600)\fad(100,450)}ESTUDO QUE ACOMPANHA VOCÊ
+Dialogue: 1,0:00:11.20,0:00:16.60,Headline,,0,0,0,,{\an9\move(1680,260,955,260,0,800)\fad(100,450)}LIVROS TÉCNICOS.\NMANUAIS.\NIDEIAS GRANDES.
+Dialogue: 2,0:00:13.50,0:00:16.60,Detail,,0,0,0,,{\an9\move(1520,555,955,555,0,650)\fad(100,450)}Tudo organizado no seu bolso.
+Dialogue: 0,0:00:17.00,0:00:22.50,Kicker,,0,0,0,,{\move(540,-100,540,112,0,600)\fad(100,450)}DO DOCUMENTO À CLAREZA
+Dialogue: 1,0:00:17.20,0:00:22.50,Headline,,0,0,0,,{\move(540,210,540,235,0,600)\fad(100,450)}ENCONTRE.\NMARQUE.\NENTENDA.
+Dialogue: 2,0:00:19.75,0:00:22.50,Detail,,0,0,0,,{\move(540,620,540,620,0,450)\fad(100,450)}OCR  •  BUSCA  •  NOTAS  •  IA
+Dialogue: 0,0:00:23.00,0:00:29.60,Final,,0,0,0,,{\pos(540,755)\fad(250,700)}POCKET LIBRARY\N{\fs42}SUA BIBLIOTECA, NO SEU BOLSO.\N{\c&H005A9BCF&\fs34}ENTRE NA BETA
