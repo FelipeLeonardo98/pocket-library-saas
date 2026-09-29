@@ -6,6 +6,14 @@ Beta: https://beta.dkwxx3mmw59dz.amplifyapp.com
 
 As decisões e prioridades de produto ficam em [docs/product-feedback.md](docs/product-feedback.md).
 
+## Aplicativo instalável
+
+A beta pode ser instalada como aplicativo em navegadores compatíveis. Quando o
+navegador oferecer suporte, o botão **Instalar app** aparecerá no canto da tela.
+No iPhone/iPad, use **Compartilhar → Adicionar à Tela de Início**. Depois da
+primeira visita, a interface do leitor fica disponível offline; PDFs, notas e
+preferências continuam locais neste dispositivo.
+
 ## Executar
 
 ```bash
@@ -50,6 +58,9 @@ localmente para habilitar leitura, seleção, busca e IA naquela página.
 - remoção individual de itens;
 - exportação do material de estudo em Markdown;
 - persistência totalmente local.
+
+O Caderno também permite filtrar tudo, somente notas, destaques ou marcadores,
+e restringir a revisão a uma página específica.
 
 Trechos sobrepostos são evitados no modo **Leitura** nesta versão da POC.
 

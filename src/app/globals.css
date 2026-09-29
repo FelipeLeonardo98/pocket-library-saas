@@ -158,6 +158,7 @@ button { color:inherit; }
 .ocr-button { display:inline-flex; align-items:center; gap:8px; border:0; border-radius:9px; padding:10px 14px; background:var(--ink); color:#fffdf9; font:600 13px var(--font-ui),sans-serif; cursor:pointer; }
 .ocr-button:disabled { opacity:.68; cursor:wait; }
 .toolbar-progress { min-width:30px; font:700 10px var(--font-ui),sans-serif; }
+.install-app-button { position:fixed; z-index:30; right:16px; bottom:16px; display:inline-flex; align-items:center; gap:8px; border:0; border-radius:999px; padding:11px 15px; background:#5d3c23; color:#fffaf2; box-shadow:0 12px 30px #28170d55; font:700 13px var(--font-ui),sans-serif; cursor:pointer; }
 
 .appearance-panel { position:fixed; z-index:8; top:76px; right:16px; width:330px; max-height:calc(100vh - 166px); overflow:auto; padding:20px; border:1px solid var(--line); border-radius:16px; background:#fffdf9; color:#29241e; box-shadow:0 20px 60px #23180e33; }
 .theme-dark .appearance-panel { background:#292826; color:#eee9df; }
@@ -205,11 +206,18 @@ button { color:inherit; }
 .theme-dark .study-section h3 span { background:#47423c; color:#ddd2c6; }
 .study-empty { margin:0; padding:13px; border-radius:9px; background:#f4efe7; color:var(--muted); font-size:12px; line-height:1.5; }
 .theme-dark .study-empty { background:#343230; }
+.study-filters { display:grid; gap:10px; margin:14px 0 2px; }
+.study-filter-tabs { display:flex; flex-wrap:wrap; gap:6px; }
+.study-filter-tabs button { border:1px solid var(--line); border-radius:99px; padding:6px 9px; background:transparent; color:var(--muted); font:650 11px var(--font-ui),sans-serif; cursor:pointer; }
+.study-filter-tabs button.active { border-color:#8a5e35; background:#5d3c23; color:#fffaf2; }
+.study-page-filter { display:flex; align-items:center; gap:8px; color:var(--muted); font:600 11px var(--font-ui),sans-serif; }
+.study-page-filter select { flex:1; min-width:0; border:1px solid var(--line); border-radius:8px; padding:7px 8px; background:transparent; color:inherit; font:inherit; }
+.study-filter-summary { margin:10px 0 -4px; color:var(--muted); font:11px var(--font-ui),sans-serif; }
 .study-list { display:grid; gap:9px; }
 .study-item { border:1px solid var(--line); border-radius:10px; background:white; }
 .theme-dark .study-item { background:#343230; }
-.bookmark-item, .study-item-top { display:flex; align-items:center; justify-content:space-between; }
-.bookmark-item { padding:7px 8px 7px 12px; }
+.study-item-top { display:flex; align-items:center; justify-content:space-between; }
+.bookmark-item { display:block; padding:7px 8px 7px 12px; }
 .highlight-card { padding:11px 12px; border-left-width:4px; }
 .highlight-card.highlight-yellow { border-left-color:#e0b927; }
 .highlight-card.highlight-green { border-left-color:#51a86a; }
@@ -300,4 +308,5 @@ button { color:inherit; }
   .reading-page { width:100%; min-height:calc(100vh - 180px); padding:42px min(var(--reading-margin),12vw) 70px; }
   .appearance-panel, .study-panel, .assistant-panel, .search-panel { inset:68px 10px auto; width:auto; max-height:calc(100vh - 158px); }
   .reader-actions .icon-button[aria-label="Modo foco"] { display:none; }
+  .install-app-button { right:12px; bottom:12px; }
 }
