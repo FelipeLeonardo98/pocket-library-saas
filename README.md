@@ -36,7 +36,9 @@ Acesse `http://localhost:3000`, clique em **Adicionar PDF** e escolha um livro.
 - modo foco com tela cheia e interface reduzida;
 - controles responsivos para telas menores.
 
-O modo leitura depende do texto incorporado no PDF. Páginas digitalizadas como imagem precisarão de OCR em um marco futuro.
+Para páginas digitalizadas como imagem, use o botão **OCR desta página**. O
+processamento acontece sob demanda no navegador e o texto extraído é guardado
+localmente para habilitar leitura, seleção, busca e IA naquela página.
 
 ## Entregue no Marco 3
 
@@ -58,7 +60,7 @@ Trechos sobrepostos são evitados no modo **Leitura** nesta versão da POC.
 - destaques posicionados sobre a página e preservados durante o zoom;
 - seleção mais robusta por mouse ou toque no modo **Leitura**.
 
-PDFs digitalizados como imagem continuam dependendo de OCR, planejado para um marco posterior.
+PDFs digitalizados podem usar OCR sob demanda por página no modo Leitura.
 
 ## Marco 4 — protótipo local
 

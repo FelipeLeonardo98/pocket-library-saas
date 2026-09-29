@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   ArrowLeft,
@@ -17,6 +17,7 @@ import {
   Minus,
   Plus,
   RotateCcw,
+  ScanText,
   Search,
   SlidersHorizontal,
   Sparkles,
@@ -72,6 +73,7 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
   const preferences = useLiveQuery(() => db.settings.get("reader"), []) ?? defaultPreferences;
   const highlights = useLiveQuery(() => db.highlights.where("bookId").equals(book.id).sortBy("page"), [book.id]) ?? [];
   const bookmarks = useLiveQuery(() => db.bookmarks.where("bookId").equals(book.id).sortBy("page"), [book.id]) ?? [];
+  const ocrPageRecords = useLiveQuery(() => db.ocrPages.where("bookId").equals(book.id).toArray(), [book.id]);
   const [pdfDocument, setPdfDocument] = useState<PDFDocumentProxy | null>(null);
   const [page, setPage] = useState(Math.max(1, book.lastPage));
   const [pageInput, setPageInput] = useState(String(Math.max(1, book.lastPage)));
@@ -79,6 +81,8 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
   const [scale, setScale] = useState(1.1);
   const [readingText, setReadingText] = useState("");
   const [extractingText, setExtractingText] = useState(false);
+  const [ocrProcessing, setOcrProcessing] = useState(false);
+  const [ocrProgress, setOcrProgress] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -107,6 +111,7 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
 
   const pageHighlights = highlights.filter((highlight) => highlight.page === page);
   const currentBookmark = bookmarks.find((bookmark) => bookmark.page === page);
+  const ocrByPage = useMemo(() => new Map((ocrPageRecords ?? []).map((item) => [item.page, item.text])), [ocrPageRecords]);
 
   const showToast = useCallback((message: string) => {
     setToast(message);
@@ -127,9 +132,44 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
       .replace(/[ \t]+\n/g, "\n")
       .replace(/\n{3,}/g, "\n\n")
       .trim();
-    textCache.current.set(pageNumber, text);
-    return text;
-  }, [pdfDocument]);
+    const resolvedText = text || ocrByPage.get(pageNumber) || "";
+    textCache.current.set(pageNumber, resolvedText);
+    return resolvedText;
+  }, [ocrByPage, pdfDocument]);
+
+  const runOcrForCurrentPage = async () => {
+    if (!pdfDocument || ocrProcessing) return;
+    setOcrProcessing(true);
+    setOcrProgress(0);
+    try {
+      const pdfPage = await pdfDocument.getPage(page);
+      const viewport = pdfPage.getViewport({ scale: 2.25 });
+      const image = document.createElement("canvas");
+      image.width = Math.ceil(viewport.width);
+      image.height = Math.ceil(viewport.height);
+      const context = image.getContext("2d");
+      if (!context) throw new Error("Não foi possível preparar a imagem para OCR.");
+      await pdfPage.render({ canvas: image, viewport }).promise;
+      const { recognize } = await import("tesseract.js");
+      const result = await recognize(image, "por+eng", {
+        logger: (event) => {
+          if (event.status === "recognizing text") setOcrProgress(Math.round(event.progress * 100));
+        },
+      });
+      const text = result.data.text.replace(/\n{3,}/g, "\n\n").trim();
+      if (!text) throw new Error("Não foi possível identificar texto nesta página.");
+      const now = Date.now();
+      await db.ocrPages.put({ id: `${book.id}:${page}`, bookId: book.id, page, text, createdAt: now });
+      textCache.current.set(page, text);
+      setReadingText(text);
+      showToast("OCR concluído. O texto foi salvo neste dispositivo.");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Não foi possível executar o OCR desta página.");
+    } finally {
+      setOcrProcessing(false);
+      setOcrProgress(0);
+    }
+  };
 
   useEffect(() => () => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -589,6 +629,7 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
             <button className="icon-button" onClick={() => setScale((value) => Math.min(2.4, value + 0.15))} aria-label="Aumentar zoom"><Plus size={19} /></button>
             <button className="icon-button" onClick={() => setScale(1.1)} aria-label="Restaurar zoom"><RotateCcw size={18} /></button>
           </>}
+          <button className={`icon-button ${ocrProcessing ? "active-tool" : ""}`} onClick={() => void runOcrForCurrentPage()} disabled={ocrProcessing} aria-label="Extrair texto desta página com OCR" title="OCR desta página">{ocrProcessing ? <span className="toolbar-progress">{ocrProgress}%</span> : <ScanText size={19} />}</button>
           <button className={`icon-button ${currentBookmark ? "active-tool" : ""}`} onClick={openBookmarkNote} aria-label={currentBookmark ? "Editar marcador e anotação da página" : "Salvar página com anotação"}>{currentBookmark ? <BookmarkCheck size={19} /> : <Bookmark size={19} />}</button>
           <button className={`icon-button ${studyOpen ? "active-tool" : ""}`} onClick={() => { setStudyOpen((value) => !value); setSettingsOpen(false); setAssistantOpen(false); }} aria-label="Caderno de estudo"><Highlighter size={19} /><span className="toolbar-badge">{highlights.length + bookmarks.length}</span></button>
           <button className={`icon-button ${searchOpen ? "active-tool" : ""}`} onClick={() => { setSearchOpen((value) => !value); setSettingsOpen(false); setStudyOpen(false); setAssistantOpen(false); }} aria-label="Pesquisar no PDF"><Search size={19} /></button>
@@ -618,7 +659,7 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
         {pdfDocument && !loadingError && preferences.viewMode === "reading" && (
           <article className={`reading-page font-${preferences.fontFamily}`}>
             <span className="reading-page-number">Página {page}</span>
-            {extractingText ? <div className="reading-loading"><span className="spinner" />Extraindo texto…</div> : readingText ? <p ref={readingParagraphRef} onMouseUp={handleTextSelection} onTouchEnd={handleTextSelection}>{renderHighlightedText(readingText, pageHighlights)}</p> : <div className="reading-empty">Esta página não possui texto selecionável. Ela pode conter apenas imagens ou exigir OCR.</div>}
+            {extractingText ? <div className="reading-loading"><span className="spinner" />Extraindo texto…</div> : readingText ? <p ref={readingParagraphRef} onMouseUp={handleTextSelection} onTouchEnd={handleTextSelection}>{renderHighlightedText(readingText, pageHighlights)}</p> : <div className="reading-empty"><div><p>Esta página não possui texto selecionável.</p><button className="ocr-button" onClick={() => void runOcrForCurrentPage()} disabled={ocrProcessing}>{ocrProcessing ? `Lendo imagem… ${ocrProgress}%` : <><ScanText size={18} /> Extrair texto com OCR</>}</button><small>Processamento no seu navegador; o texto fica salvo apenas neste dispositivo.</small></div></div>}
           </article>
         )}
       </section>

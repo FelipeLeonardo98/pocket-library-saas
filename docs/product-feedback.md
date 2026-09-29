@@ -47,11 +47,13 @@ instruções enviadas ao assistente.
 Após configurar o remetente SES, ativar login por código e sincronizar
 progresso, destaques, notas e marcadores. PDFs continuam locais por padrão.
 
-### P3 — OCR
+### P3 — OCR (primeira entrega concluída)
 
 Permitir busca, seleção e recursos de IA em páginas escaneadas ou compostas
-somente por imagem. Essa etapa exige avaliar custo, qualidade e privacidade do
-processamento.
+somente por imagem. A primeira entrega executa OCR sob demanda, uma página por
+vez, no navegador e salva o texto extraído apenas no dispositivo. Um próximo
+incremento pode oferecer processamento em lote, revisão manual e melhor
+tratamento de idiomas/layouts complexos.
 
 ### P4 — Biblioteca e acesso multiplataforma
 

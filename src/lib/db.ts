@@ -68,11 +68,20 @@ export interface BookmarkRecord {
   updatedAt?: number;
 }
 
+export interface OcrPageRecord {
+  id: string;
+  bookId: string;
+  page: number;
+  text: string;
+  createdAt: number;
+}
+
 const database = new Dexie("estudo-pdf") as Dexie & {
   books: EntityTable<BookRecord, "id">;
   settings: EntityTable<ReaderPreferences, "key">;
   highlights: EntityTable<HighlightRecord, "id">;
   bookmarks: EntityTable<BookmarkRecord, "id">;
+  ocrPages: EntityTable<OcrPageRecord, "id">;
   collections: EntityTable<CollectionRecord, "id">;
 };
 
@@ -112,6 +121,15 @@ database.version(6).stores({
   settings: "key",
   highlights: "id, bookId, page, [bookId+page], createdAt",
   bookmarks: "id, bookId, page, [bookId+page], createdAt",
+  collections: "id, name, createdAt",
+});
+
+database.version(7).stores({
+  books: "id, title, fileName, collectionId, addedAt, updatedAt",
+  settings: "key",
+  highlights: "id, bookId, page, [bookId+page], createdAt",
+  bookmarks: "id, bookId, page, [bookId+page], createdAt",
+  ocrPages: "id, bookId, page, [bookId+page], createdAt",
   collections: "id, name, createdAt",
 });
 

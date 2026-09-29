@@ -152,6 +152,12 @@ button { color:inherit; }
 .theme-sepia .reading-page { background:#f1e5ce; color:#382e22; }
 .theme-dark .reading-page { background:#242424; color:#dedbd4; box-shadow:0 14px 44px #0008; }
 .reading-loading, .reading-empty { min-height:220px; display:flex; align-items:center; justify-content:center; gap:10px; color:#827a70; text-align:center; font:14px/1.5 var(--font-ui),sans-serif; }
+.reading-empty > div { display:grid; gap:12px; justify-items:center; max-width:360px; }
+.reading-empty p { margin:0; }
+.reading-empty small { color:#9b9287; }
+.ocr-button { display:inline-flex; align-items:center; gap:8px; border:0; border-radius:9px; padding:10px 14px; background:var(--ink); color:#fffdf9; font:600 13px var(--font-ui),sans-serif; cursor:pointer; }
+.ocr-button:disabled { opacity:.68; cursor:wait; }
+.toolbar-progress { min-width:30px; font:700 10px var(--font-ui),sans-serif; }
 
 .appearance-panel { position:fixed; z-index:8; top:76px; right:16px; width:330px; max-height:calc(100vh - 166px); overflow:auto; padding:20px; border:1px solid var(--line); border-radius:16px; background:#fffdf9; color:#29241e; box-shadow:0 20px 60px #23180e33; }
 .theme-dark .appearance-panel { background:#292826; color:#eee9df; }
