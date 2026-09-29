@@ -1,0 +1,17 @@
+[Script Info]
+Title: Pocket Library Reel
+PlayResX: 1080
+PlayResY: 1920
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding
+Style: Pocket,Georgia,64,&H00F7F3EC,&H000000FF,&H003B2D20,&H00000000,-1,0,0,0,100,100,0,0,1,4,0,8,72,72,160,1
+
+[Events]
+Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
+Dialogue: 0,0:00:00.50,0:00:05.00,Pocket,,0,0,0,,SEU CONHECIMENTO\NNÃO PRECISA PESAR.
+Dialogue: 0,0:00:05.20,0:00:10.80,Pocket,,0,0,0,,LEVE O CONHECIMENTO.\NNÃO O PESO.
+Dialogue: 0,0:00:11.00,0:00:16.70,Pocket,,0,0,0,,LIVROS TÉCNICOS.\NMANUAIS. IDEIAS GRANDES.
+Dialogue: 0,0:00:17.00,0:00:22.60,Pocket,,0,0,0,,ENCONTRE. MARQUE.\NENTENDA.
+Dialogue: 0,0:00:23.00,0:00:29.60,Pocket,,0,0,0,,POCKET LIBRARY\NSUA BIBLIOTECA, NO SEU BOLSO.\NENTRE NA BETA.

@@ -47,6 +47,9 @@ deploy/
 /books/
 *.pdf
 
+# marketing render checks
+marketing/output/*-preview.jpg
+
 # vercel
 .vercel
 
