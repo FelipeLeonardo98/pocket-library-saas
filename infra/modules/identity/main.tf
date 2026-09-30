@@ -12,18 +12,21 @@ resource "aws_cognito_user_pool" "this" {
     allowed_first_auth_factors = ["EMAIL_OTP", "PASSWORD"]
   }
 
-  email_configuration {
-    email_sending_account = "DEVELOPER"
-    source_arn            = var.ses_source_arn
-    from_email_address    = var.from_email_address
+  dynamic "email_configuration" {
+    for_each = var.use_cognito_default_email ? [] : [1]
+    content {
+      email_sending_account = "DEVELOPER"
+      source_arn            = var.ses_source_arn
+      from_email_address    = var.from_email_address
+    }
   }
 
   tags = var.tags
 
   lifecycle {
     precondition {
-      condition     = !var.enabled || (var.ses_source_arn != "" && var.from_email_address != "")
-      error_message = "Configure um e-mail/dominio verificado no SES antes de ativar o login por e-mail."
+      condition     = !var.enabled || var.use_cognito_default_email || (var.ses_source_arn != "" && var.from_email_address != "")
+      error_message = "Configure um e-mail/dominio verificado no SES ou use o remetente temporário do Cognito."
     }
   }
 }
@@ -50,7 +53,7 @@ resource "aws_cognito_user_pool_client" "web" {
 }
 
 resource "aws_sesv2_email_identity_policy" "allow_cognito" {
-  count = var.enabled ? 1 : 0
+  count = var.enabled && !var.use_cognito_default_email ? 1 : 0
 
   email_identity = replace(var.ses_source_arn, "/^.*:identity\\//", "")
   policy_name    = "AllowPocketLibraryCognito"

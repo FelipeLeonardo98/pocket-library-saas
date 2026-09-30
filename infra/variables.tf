@@ -76,3 +76,9 @@ variable "from_email_address" {
   description = "Verified sender address displayed by Cognito."
   default     = ""
 }
+
+variable "use_cognito_default_email" {
+  type        = bool
+  description = "Use Cognito's temporary default sender while the product domain is not configured."
+  default     = true
+}

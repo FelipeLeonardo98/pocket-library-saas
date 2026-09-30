@@ -21,6 +21,12 @@ variable "from_email_address" {
   default     = ""
 }
 
+variable "use_cognito_default_email" {
+  type        = bool
+  description = "Use Cognito's temporary default sender instead of SES. It is limited to 50 messages per day."
+  default     = true
+}
+
 variable "tags" {
   type        = map(string)
   description = "Tags applied to supported resources."

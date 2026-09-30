@@ -20,12 +20,13 @@ module "quota" {
 }
 
 module "identity" {
-  source             = "./modules/identity"
-  enabled            = var.enable_passwordless_auth
-  name_prefix        = var.name_prefix
-  ses_source_arn     = var.ses_source_arn
-  from_email_address = var.from_email_address
-  tags               = local.required_tags
+  source                    = "./modules/identity"
+  enabled                   = var.enable_passwordless_auth
+  name_prefix               = var.name_prefix
+  ses_source_arn            = var.ses_source_arn
+  from_email_address        = var.from_email_address
+  use_cognito_default_email = var.use_cognito_default_email
+  tags                      = local.required_tags
 }
 
 module "serverless_api" {
