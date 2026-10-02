@@ -157,6 +157,16 @@ button { color:inherit; }
 .reading-empty small { color:#9b9287; }
 .ocr-button { display:inline-flex; align-items:center; gap:8px; border:0; border-radius:9px; padding:10px 14px; background:var(--ink); color:#fffdf9; font:600 13px var(--font-ui),sans-serif; cursor:pointer; }
 .ocr-button:disabled { opacity:.68; cursor:wait; }
+.share-dialog { width:min(540px,calc(100vw - 32px)); padding:22px; border-radius:16px; background:#fffdf9; color:#29241e; box-shadow:0 24px 65px #24170d66; }
+.theme-dark .share-dialog { background:#292826; color:#eee9df; }
+.share-dialog blockquote { max-height:120px; overflow:auto; margin:0 0 18px; color:var(--muted); font:15px/1.5 var(--font-reading),serif; }
+.share-options { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.share-options fieldset { display:flex; flex-wrap:wrap; gap:7px; margin:0; padding:0; border:0; }
+.share-options legend { width:100%; margin-bottom:3px; font:700 12px var(--font-ui),sans-serif; }
+.share-options button { padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:transparent; color:inherit; font:600 12px var(--font-ui),sans-serif; cursor:pointer; }
+.share-options button.selected { outline:2px solid var(--accent); outline-offset:1px; }
+.share-options button.dark { background:#292826; color:#fffdf9; }.share-options button.caramel { background:#cf9b5a; color:#3b2d20; }
+.share-hint { margin:16px 0 0; color:var(--muted); font-size:11px; line-height:1.4; }
 .toolbar-progress { min-width:30px; font:700 10px var(--font-ui),sans-serif; }
 .install-app-button { position:fixed; z-index:30; right:16px; bottom:16px; display:inline-flex; align-items:center; gap:8px; border:0; border-radius:999px; padding:11px 15px; background:#5d3c23; color:#fffaf2; box-shadow:0 12px 30px #28170d55; font:700 13px var(--font-ui),sans-serif; cursor:pointer; }
 

@@ -19,6 +19,7 @@ import {
   RotateCcw,
   ScanText,
   Search,
+  Share2,
   SlidersHorizontal,
   Sparkles,
   StickyNote,
@@ -103,6 +104,9 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
   const [textSelection, setTextSelection] = useState<TextSelection | null>(null);
   const [noteOpen, setNoteOpen] = useState(false);
   const [noteDraft, setNoteDraft] = useState("");
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareTheme, setShareTheme] = useState<"paper" | "dark" | "caramel">("paper");
+  const [shareFormat, setShareFormat] = useState<"feed" | "story">("feed");
   const [bookmarkNoteOpen, setBookmarkNoteOpen] = useState(false);
   const [bookmarkNoteDraft, setBookmarkNoteDraft] = useState("");
   const [toast, setToast] = useState<string | null>(null);
@@ -118,6 +122,35 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     toastTimerRef.current = setTimeout(() => setToast(null), 2400);
   }, []);
+
+  const createShareCard = async () => {
+    if (!textSelection) throw new Error("Selecione um trecho primeiro.");
+    const dimensions = shareFormat === "feed" ? { width: 1080, height: 1350 } : { width: 1080, height: 1920 };
+    const palette = shareTheme === "dark" ? { background: "#29231e", ink: "#f7f3ec", accent: "#cf9b5a" } : shareTheme === "caramel" ? { background: "#cf9b5a", ink: "#3b2d20", accent: "#f7f3ec" } : { background: "#f7f3ec", ink: "#3b2d20", accent: "#cf9b5a" };
+    const canvas = document.createElement("canvas"); canvas.width = dimensions.width; canvas.height = dimensions.height;
+    const context = canvas.getContext("2d"); if (!context) throw new Error("Não foi possível criar o card.");
+    context.fillStyle = palette.background; context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = palette.accent; context.fillRect(76, 94, 130, 10);
+    context.fillStyle = palette.ink; context.font = "700 25px Arial"; context.fillText("POCKET LIBRARY", 76, 155);
+    const quote = textSelection.text.length > 420 ? `${textSelection.text.slice(0, 417).trimEnd()}…` : textSelection.text;
+    context.font = "700 56px Georgia"; context.fillStyle = palette.ink;
+    const lines = wrapCanvasText(context, `“${quote}”`, canvas.width - 152); let y = shareFormat === "feed" ? 300 : 420;
+    for (const line of lines) { context.fillText(line, 76, y); y += 76; }
+    const footerY = canvas.height - 175; context.fillStyle = palette.accent; context.fillRect(76, footerY - 50, canvas.width - 152, 2);
+    context.fillStyle = palette.ink; context.font = "600 26px Arial"; context.fillText(book.title.slice(0, 64), 76, footerY);
+    context.font = "400 23px Arial"; context.fillText(`Página ${page}  •  Leve o conhecimento. Não o peso.`, 76, footerY + 44);
+    return await new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Não foi possível exportar o card.")), "image/png"));
+  };
+
+  const downloadShareCard = async () => {
+    const blob = await createShareCard(); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "pocket-library-destaque.png"; link.click(); URL.revokeObjectURL(url); showToast("Card baixado para compartilhar.");
+  };
+
+  const shareCard = async () => {
+    const blob = await createShareCard(); const file = new File([blob], "pocket-library-destaque.png", { type: "image/png" });
+    if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) { await navigator.share({ title: "Pocket Library", text: `${book.title} — página ${page}`, files: [file] }); showToast("Card pronto para compartilhar."); return; }
+    await downloadShareCard();
+  };
 
   const getPageText = useCallback(async (pageNumber: number) => {
     if (!pdfDocument) return "";
@@ -669,6 +702,7 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
           {(["yellow", "green", "blue"] as const).map((color) => <button key={color} className={`color-dot color-${color}`} onClick={() => void saveHighlight(color)} aria-label={`Destacar em ${color}`} />)}
           <span />
           <button onClick={() => setNoteOpen(true)} aria-label="Adicionar nota"><StickyNote size={17} /></button>
+          <button onClick={() => setShareOpen(true)} aria-label="Criar card para compartilhar"><Share2 size={17} /></button>
           <button onClick={() => void runAssistant("explain", textSelection.text)} aria-label="Explicar trecho"><Sparkles size={17} /></button>
           <button onClick={() => void runAssistant("translate", textSelection.text)} aria-label="Traduzir para português"><Languages size={17} /></button>
         </div>
@@ -684,6 +718,8 @@ export default function PdfViewer({ book, onBack, onProgress, onReadingTime }: P
           </div>
         </div>
       )}
+
+      {shareOpen && textSelection && <div className="note-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setShareOpen(false); }}><div className="share-dialog" role="dialog" aria-modal="true" aria-labelledby="share-title"><div className="panel-heading"><div><span className="eyebrow">Destaque compartilhável</span><h2 id="share-title">Criar card</h2></div><button className="icon-button" onClick={() => setShareOpen(false)} aria-label="Fechar compartilhamento"><X size={19} /></button></div><blockquote>{textSelection.text}</blockquote><div className="share-options"><fieldset><legend>Tema</legend>{(["paper", "dark", "caramel"] as const).map((theme) => <button key={theme} className={shareTheme === theme ? `selected ${theme}` : theme} onClick={() => setShareTheme(theme)}>{theme === "paper" ? "Papel" : theme === "dark" ? "Escuro" : "Caramelo"}</button>)}</fieldset><fieldset><legend>Formato</legend><button className={shareFormat === "feed" ? "selected" : ""} onClick={() => setShareFormat("feed")}>Feed</button><button className={shareFormat === "story" ? "selected" : ""} onClick={() => setShareFormat("story")}>Story</button></fieldset></div><p className="share-hint">O card inclui o título e a página. Compartilhe apenas trechos que você tenha direito de publicar.</p><div className="dialog-actions"><button onClick={() => void downloadShareCard()}>Baixar PNG</button><button className="save-note" onClick={() => void shareCard()}><Share2 size={16} /> Compartilhar</button></div></div></div>}
 
       {bookmarkNoteOpen && (
         <div className="note-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setBookmarkNoteOpen(false); }}>
@@ -721,6 +757,16 @@ function renderHighlightedText(text: string, highlights: HighlightRecord[]): Rea
   }
   nodes.push(text.slice(cursor));
   return nodes;
+}
+
+function wrapCanvasText(context: CanvasRenderingContext2D, text: string, maxWidth: number) {
+  const lines: string[] = []; let line = "";
+  for (const word of text.replace(/\s+/g, " ").split(" ")) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (context.measureText(candidate).width > maxWidth && line) { lines.push(line); line = word; } else line = candidate;
+  }
+  if (line) lines.push(line);
+  return lines;
 }
 
 function SearchPanel({ query, results, searching, hasSearched, onQueryChange, onSearch, onClose, onGoToPage }: {
